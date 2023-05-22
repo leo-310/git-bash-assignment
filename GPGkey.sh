@@ -22,7 +22,8 @@ function gpgConfig {
   git config --global commit.gpgsign true
   gpg --armor --export "$gpgKeyId" >publicKey.asc
   cat publicKey.asc
-  echo "Copy this public key and paste it into a new GPG key in your GitHub account."
+  echo "Copy this public key and paste it into a new GPG key in your GitHub account if you haven't already."
+  exit 1
 }
 
 if ! gpg --list-secret-keys --keyid-format=long | grep -q "sec"; then #Checking the existence of the word sec
@@ -39,13 +40,16 @@ else
   if [ "$input" -eq 1 ]; then
     echo "Using an existing key..."
     gpg --list-secret-keys --keyid-format=long
-    echo "Enter the GPG key from sec : "
+    echo "Enter the GPG key from after sec : "
     read gpgKeyId
     gpgConfig "$gpgKeyId"
   elif [ "$input" -eq 2 ]; then
     echo "Generating a new key..."
     gpg --full-generate-key
     gpgKeyId=$(gpg --list-secret-keys --keyid-format=long | awk '$1 ~ /sec/ { print $2 }' | cut -d'/' -f2 | tail -n 1)
+    gpg --list-secret-keys --keyid-format=long
+    echo "Choose your signing key from the above available keys : "
+    read gpgKeyId
     gpgConfig "$gpgKeyId"
   elif [ "$input" -eq 3 ]; then
     gpg --list-secret-keys --keyid-format=long
